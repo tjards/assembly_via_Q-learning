@@ -52,11 +52,12 @@ file_path = os.path.join(data_directory, "data.json")
 with open(file_path, 'w') as file:
     json.dump(data, file)
 
+
 #%% Setup Simulation
 # ------------------
 #np.random.seed(0)
 Ti = 0       # initial time
-Tf = 30      # final time (later, add a condition to break out when desirable conditions are met)
+Tf = 240      # final time (later, add a condition to break out when desirable conditions are met)
 Ts = 0.02    # sample time
 f  = 0       # parameter for future use
 #exclusion = []     # [LEGACY] initialization of what agents to exclude, default empty

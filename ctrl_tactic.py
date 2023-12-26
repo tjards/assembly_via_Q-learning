@@ -22,7 +22,7 @@ import copy
 
 #%% hyperparameters
 # -----------------
-learning = 1        # do we want to learn?
+#learning = 1        # do we want to learn?
 
 #%% instatiate the learning agent
 #if learning == 1:

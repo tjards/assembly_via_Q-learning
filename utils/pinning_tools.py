@@ -51,6 +51,11 @@ from utils import graph_tools as grph
 #import copy
 #import sys
 
+learning = 1  # learning? 1 = yes, 0 = no
+
+if learning == 1:
+    from utils import RL_tools as RL
+
 # note: verify number of components is not matching the pin_matrix
 
 #%% Hyperparameters
@@ -123,6 +128,28 @@ class parameterizer:
     
 #%% instatiate class for parameters
 paramClass = parameterizer(params_n, hetero_lattice)
+if learning == 1:
+    learning_agent = RL.q_learning_agent(paramClass.params_n)
+    # overides the parameter selection
+    learning_agent.select_action()
+    #print('debug')
+    
+    learning_agent.match_parameters(paramClass)
+    
+    # # set controller parameters
+    # if paramClass.d_weighted.shape[1] != len(learning_agent.action):
+    #     raise ValueError("Error! Mis-match in dimensions of controller and RL parameters")
+    # # for each control parameter (i.e. lattice lengths)
+    
+    # # note: I need to ensure the d_weighted line up wll with actions... mismatch?
+
+    # for i in range(paramClass.d_weighted.shape[1]):
+    #     # for each neighbour
+    #     for j in range(len(learning_agent.action)-1):
+    #         # load the neighbour action
+    #         paramClass.d_weighted[i, j] = learning_agent.action["Agent " + str(i)]["Neighbour Action " + str(j)]
+    
+    
     
 
 #%% Useful functions
@@ -180,6 +207,22 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node):
     # ensure the parameters match the agents
     if paramClass.d_weighted.shape[1] != states_q.shape[1]:
         raise ValueError("Error! There are ", states_q.shape[1], 'agents, but ', paramClass.d_weighted.shape[1], 'lattice parameters')
+        
+    # RL
+    # increment the RL counter
+    learning_agent.time_count += 1/learning_agent.nAgents # note: we divide by nAgent becvause this is called for each agent
+    # if we have reached the learning time horizon
+    if learning_agent.time_count > learning_agent.time_horizon and np.max(abs(states_p))<learning_agent.time_horizon_v:
+        # compute the reward signal
+        learning_agent.compute_reward(states_q)
+        # update the q table
+        learning_agent.update_q_table()
+        # select a new set of actions
+        learning_agent.select_action()
+        learning_agent.match_parameters(paramClass)
+        # restart the timer
+        learning_agent.time_count = 0
+        
         
     # initialize 
     d = paramClass.d_weighted[k_node, k_node]
