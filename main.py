@@ -55,9 +55,9 @@ with open(file_path, 'w') as file:
 
 #%% Setup Simulation
 # ------------------
-#np.random.seed(0)
+np.random.seed(0)
 Ti = 0       # initial time
-Tf = 240      # final time (later, add a condition to break out when desirable conditions are met)
+Tf = 60      # final time (later, add a condition to break out when desirable conditions are met)
 Ts = 0.02    # sample time
 f  = 0       # parameter for future use
 #exclusion = []     # [LEGACY] initialization of what agents to exclude, default empty
@@ -68,7 +68,7 @@ Agents = swarm.Agents('pinning', 10)
 Controller = tactic.Controller(Agents)
 Targets = swarm.Targets(0, Agents.nVeh)
 Trajectory = swarm.Trajectory(Targets)
-Obstacles = swarm.Obstacles(Agents.tactic_type, 0, Targets.targets)
+Obstacles = swarm.Obstacles(Agents.tactic_type, 5, Targets.targets)
 History = swarm.History(Agents, Targets, Obstacles, Controller, Ts, Tf, Ti, f)
 
 #%% Run Simulation

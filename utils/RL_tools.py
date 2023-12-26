@@ -21,10 +21,10 @@ from scipy.spatial import distance
 
 #%% hyper parameters
 # ----------------
-options_range   = [2, 10]
-nOptions       = 2         # number of action options
+options_range   = [2, 8]
+nOptions       = 3         # number of action options
 time_horizon    = 250        # how long to apply action and away reward (1 sec/0.02 sample per sec = 50), also speed 
-time_horizon_v  = 0.2        # max speed to transition learning (makes learnig more stable)
+time_horizon_v  = 0.5        # max speed to transition learning (makes learnig more stable)
 
 data_directory = 'Data'
 #file_path = os.path.join(data_directory, f"data_{formatted_date}.json")
@@ -54,12 +54,18 @@ class q_learning_agent:
         #self.action_options = np.linspace(options_range[0], options_range[1], nAction)
         self.action_options = {state: np.linspace(options_range[0], options_range[1], self.nOptions) for state in range(self.nAgents)}
         self.explore_rate   = 1     # 1 = always learn, 0 = always exploit best option
-        self.learn_rate     = 0.9   # alpha/lambda
-        self.discount       = 0 #0.8   # balance immediate/future rewards, (gamma): 0.8 to 0.99
+        self.learn_rate     = 0.5   # alpha/lambda
+        self.discount       = 0.8   # balance immediate/future rewards, (gamma): 0.8 to 0.99
         self.time_horizon   = time_horizon
         self.time_horizon_v   = time_horizon_v
         self.time_count     = 0
         self.Q_update_count = 0
+        
+        # for individual timecounts
+        self.time_count_i = np.zeros((nAgents))
+        self.Q_update_count_i = np.zeros((nAgents))
+        
+
         self.data           = {}
         
         # initialize Q table
@@ -148,19 +154,29 @@ class q_learning_agent:
             #print("Q table:", self.Q)
                         
 
-    def compute_reward(self, states_q):
+    def compute_reward(self, states_q, landmarks):
         
         # test: just want to learn the maximum separation for now
         self.reward = 0
+        summerizer = 0.0001
+        normalizer = 0.0001
         
-        distances = distance.pdist(states_q.transpose())
-        distance_matrix = distance.squareform(distances)
-        max_distance = np.max(distance_matrix)
+        for i in range(states_q.shape[1]):
+            for j in range(landmarks.shape[1]):
+                summerizer += np.linalg.norm(states_q[0:3,i]-landmarks[0:3,j])
+                normalizer += 1
+        self.reward = 1/np.divide(summerizer,normalizer) 
+        
+        print("Reward signal: ", self.reward)
+ 
+        #distances = distance.pdist(states_q.transpose())
+        #distance_matrix = distance.squareform(distances)
+        #max_distance = np.max(distance_matrix)
         
         #if max_distance < 10:
         #    print(max_distance)
         
-        self.reward = max_distance
+        #self.reward = max_distance
 
 
     
@@ -201,13 +217,18 @@ class q_learning_agent:
                 
                     # update the q table with selected action
                     selected_option = self.action["Agent " + str(i)]["Neighbour Action " + str(j)]
-                    #future_option = self.action["Agent " + str(j)]["Neighbour Action " + str(i)] # keep same, for now, but later I want to aassume consensus will drive neighbour to common value. The indicies don't match yet. Need to make the dict have an empty entry.
+                    
+                    # we will use this same action for the discounted future rewards, but from the neighbour's perspective
+                    future_option = self.action["Agent " + str(i)]["Neighbour Action " + str(j)] 
                     
                     #self.state = ["Agent " + str(i), "Neighbour " + str(j)]
                     #self.action = ["Option " + str(selected_option)]
                     
+                    # Q(s,a)
                     Q_current = self.Q["Agent " + str(i)]["Neighbour " + str(j)]["Option " + str(selected_option)] 
-                    Q_future = 0 #self.Q["Agent " + str(j)]["Neighbour " + str(i)]["Option " + str(future_option)] # this needs to flip i/j eventually 
+                    
+                    # Q(s+,a)
+                    Q_future = self.Q["Agent " + str(j)]["Neighbour " + str(i)]["Option " + str(future_option)] # this needs to flip i/j eventually 
                     
                     #self.Q["Agent " + str(i)]["Neighbour " + str(j)]["Option " + str(selected_option)] += np.multiply(self.learn_rate, self.reward + self.discount*Q_future - Q_current)
                     self.Q["Agent " + str(i)]["Neighbour " + str(j)]["Option " + str(selected_option)] = (1 - self.learn_rate)*Q_current + self.learn_rate*(self.reward + self.discount*Q_future)

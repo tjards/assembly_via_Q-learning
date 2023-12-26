@@ -202,7 +202,7 @@ def phi_b(q_i, q_ik, d_b):
 # -------------------------
 
 # form the lattice
-def compute_cmd_a(states_q, states_p, targets, targets_v, k_node):
+def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
     
     # ensure the parameters match the agents
     if paramClass.d_weighted.shape[1] != states_q.shape[1]:
@@ -214,7 +214,8 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node):
     # if we have reached the learning time horizon
     if learning_agent.time_count > learning_agent.time_horizon and np.max(abs(states_p))<learning_agent.time_horizon_v:
         # compute the reward signal
-        learning_agent.compute_reward(states_q)
+        print("trial length: ", learning_agent.time_count)
+        learning_agent.compute_reward(states_q, landmarks)
         # update the q table
         learning_agent.update_q_table()
         # select a new set of actions
@@ -329,7 +330,8 @@ def compute_cmd(centroid, states_q, states_p, obstacles, walls, targets, targets
     # initialize 
     cmd_i = np.zeros((3,states_q.shape[1]))
     
-    u_int = compute_cmd_a(states_q, states_p, targets, targets_v, k_node)
+    #u_int = compute_cmd_a(states_q, states_p, targets, targets_v, k_node)
+    u_int = compute_cmd_a(states_q, states_p, targets, targets_v, k_node, obstacles)
     u_obs = compute_cmd_b(states_q, states_p, obstacles, walls, k_node)
     u_nav = compute_cmd_g(states_q, states_p, targets, targets_v, k_node, pin_matrix)
        
