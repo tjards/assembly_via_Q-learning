@@ -80,7 +80,8 @@ while round(t,3) < Tf:
     
     # Evolve the target
     # -----------------    
-    Targets.evolve(t)
+    #Targets.evolve(t)
+    Targets.evolve_obs_centroid(Obstacles.obstacles[0:3,:])
     
     # Update the obstacles (if required)
     # ----------------------------------
@@ -114,7 +115,7 @@ ani = animation.animateMe(Ts, History, Obstacles, Agents.tactic_type)
 #%% Produce plots
 # --------------
 
-# separtion 
+#%% separtion 
 fig, ax = plt.subplots()
 ax.plot(History.t_all[4::],History.metrics_order_all[4::,1],'-b')
 ax.plot(History.t_all[4::],History.metrics_order_all[4::,5],':b')
@@ -128,11 +129,11 @@ ax.set(xlabel='Time [s]', ylabel='Mean Distance (with Min/Max Bounds) [m]',
 ax.grid()
 plt.show()
 
-# radii from target
+#%% radii from target
 radii = np.zeros([History.states_all.shape[2],History.states_all.shape[0]])
 for i in range(0,History.states_all.shape[0]):
     for j in range(0,History.states_all.shape[2]):
-        radii[j,i] = np.linalg.norm(History.states_all[i,:,j] - History.targets_all[i,:,j])
+        radii[j,i] = np.linalg.norm(History.states_all[i,0:3,j] - History.targets_all[i,0:3,j])
         
 fig, ax = plt.subplots()
 for j in range(0,History.states_all.shape[2]):
@@ -141,6 +142,32 @@ ax.set(xlabel='Time [s]', ylabel='Distance from Target for Each Agent [m]',
         title='Distance from Target')
 #plt.axhline(y = 5, color = 'k', linestyle = '--')
 plt.show()
+
+#%% radii from obstacles
+radii_o = np.zeros([History.states_all.shape[2],History.states_all.shape[0],History.obstacles_all.shape[2]])
+radii_o_means = np.zeros([History.states_all.shape[2],History.states_all.shape[0]])
+radii_o_means2 =  np.zeros([History.states_all.shape[0]])
+
+for i in range(0,History.states_all.shape[0]):              # the time samples
+    for j in range(0,History.states_all.shape[2]):          # the agents
+        for k in range(0,History.obstacles_all.shape[2]):   # the obstacles
+            radii_o[j,i,k] = np.linalg.norm(History.states_all[i,0:3,j] - History.obstacles_all[i,0:3,k])
+
+        radii_o_means[j,i] = np.mean(radii_o[j,i,:])
+    radii_o_means2[i] = np.mean(radii_o_means[:,i])
+
+        
+fig, ax = plt.subplots()
+start = int(10/0.02)
+
+for j in range(0,History.states_all.shape[2]):
+    ax.plot(History.t_all[start::],radii_o_means2[start::].ravel(),'-g')
+ax.set(xlabel='Time [s]', ylabel='Mean distance from Landmarks for Each Agent [m]',
+        title='Distance from Obstacles')
+#plt.axhline(y = 5, color = 'k', linestyle = '--')
+
+plt.show()
+
 
 #%% Save data
 # -----------

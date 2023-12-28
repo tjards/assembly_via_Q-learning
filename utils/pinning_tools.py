@@ -39,8 +39,9 @@ Dev notes:
     20 Dec 2023 - above didn't work. instead, used a consensus-based approach. I want to adjust tgis 
             to have different distances for each agent
     21 Dec 2023 - hetero worx, cleaning up
-    
-    
+    27 Dec 2023 - integrated Q-learning for landmark coverage 
+    27 Dec 2023 - betweenness is finickly with small component sizes... don't use for now
+      
 """
 
 #%% Import stuff
@@ -48,10 +49,13 @@ Dev notes:
 import numpy as np
 import random
 from utils import graph_tools as grph
-#import copy
-#import sys
 
-learning = 1  # learning? 1 = yes, 0 = no
+
+#%% leaarning stuff (optional)
+# ----------------------------
+
+learning = 1                # learning? 1 = yes, 0 = no
+learning_decentralized = 1  # local Q-table updates (1 = yes, 0 = global updates?
 
 if learning == 1:
     from utils import RL_tools as RL
@@ -62,7 +66,7 @@ if learning == 1:
 # -----------------
 
 # key ranges 
-d       = 7            # lattice scale (desired distance between agents) 
+d       = 7             # lattice scale (desired distance between agents) note: gets overridden by RL.
 r       = 1.3*d         # range at which neighbours can be sensed 
 d_prime = 0.6*d         # desired separation 
 r_prime = 1.3*d_prime   # range at which obstacles can be sensed
@@ -85,7 +89,7 @@ method = 'degree'
 
     # gramian   = based on controllability gramian
     # degree    = based on degree centrality 
-    # between   = based on betweenness centrality 
+    # between   = based on betweenness centrality (buggy still)
 
 # constants for useful functions
 a   = 5
@@ -95,7 +99,7 @@ eps = 0.1
 h   = 0.2 # 0.2 for lattice, for obs this should be 0.9
 pi  = 3.141592653589793
 
-# convenient place to store parameters
+#%% convenient place to store parameters
 class parameterizer:
     
     def __init__(self, params_n, hetero_lattice):
@@ -128,29 +132,14 @@ class parameterizer:
     
 #%% instatiate class for parameters
 paramClass = parameterizer(params_n, hetero_lattice)
-if learning == 1:
-    learning_agent = RL.q_learning_agent(paramClass.params_n)
-    # overides the parameter selection
-    learning_agent.select_action()
-    #print('debug')
-    
-    learning_agent.match_parameters(paramClass)
-    
-    # # set controller parameters
-    # if paramClass.d_weighted.shape[1] != len(learning_agent.action):
-    #     raise ValueError("Error! Mis-match in dimensions of controller and RL parameters")
-    # # for each control parameter (i.e. lattice lengths)
-    
-    # # note: I need to ensure the d_weighted line up wll with actions... mismatch?
 
-    # for i in range(paramClass.d_weighted.shape[1]):
-    #     # for each neighbour
-    #     for j in range(len(learning_agent.action)-1):
-    #         # load the neighbour action
-    #         paramClass.d_weighted[i, j] = learning_agent.action["Agent " + str(i)]["Neighbour Action " + str(j)]
+if learning == 1:
     
+    learning_agent = RL.q_learning_agent(paramClass.params_n)
     
-    
+    # overide the module-level parameter selection
+    learning_agent.select_action()
+    learning_agent.match_parameters(paramClass)
 
 #%% Useful functions
 # ----------------
@@ -208,23 +197,40 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
     if paramClass.d_weighted.shape[1] != states_q.shape[1]:
         raise ValueError("Error! There are ", states_q.shape[1], 'agents, but ', paramClass.d_weighted.shape[1], 'lattice parameters')
         
-    # RL
-    # increment the RL counter
-    learning_agent.time_count += 1/learning_agent.nAgents # note: we divide by nAgent becvause this is called for each agent
-    # if we have reached the learning time horizon
-    if learning_agent.time_count > learning_agent.time_horizon and np.max(abs(states_p))<learning_agent.time_horizon_v:
-        # compute the reward signal
-        print("trial length: ", learning_agent.time_count)
-        learning_agent.compute_reward(states_q, landmarks)
-        # update the q table
-        learning_agent.update_q_table()
-        # select a new set of actions
-        learning_agent.select_action()
-        learning_agent.match_parameters(paramClass)
-        # restart the timer
-        learning_agent.time_count = 0
+    # execute the reinforcement learning, local case (if applicable)
+    if learning == 1 and learning_decentralized == 1:
         
+        # increment the counter(s)
+        learning_agent.time_count_i[k_node] += 1
         
+        # if we are at the end of the horizon (and, optionally, not jumping all over the place)
+        if learning_agent.time_count_i[k_node] > learning_agent.time_horizon and np.max(abs(states_p))<learning_agent.time_horizon_v:
+            
+            # learn
+            #print("trial length for Agent ",k_node,": ", learning_agent.time_count_i[k_node])
+            learning_agent.compute_reward(np.reshape(states_q[:,k_node],(3,1)), landmarks)
+            learning_agent.update_q_table_i(k_node)
+            learning_agent.select_action_i(k_node)
+            learning_agent.match_parameters_i(paramClass, k_node)
+            learning_agent.time_count_i[k_node] = 0
+             
+    # global case
+    elif learning == 1 and learning_decentralized != 1:
+    
+        # increment the RL counter
+        learning_agent.time_count += 1/learning_agent.nAgents # note: we divide by nAgent becvause this is called for each agent
+        
+        # if we have reached the learning time horizon
+        if learning_agent.time_count > learning_agent.time_horizon and np.max(abs(states_p))<learning_agent.time_horizon_v:
+            
+            # learn
+            #print("trial length: ", learning_agent.time_count)
+            learning_agent.compute_reward(states_q, landmarks)
+            learning_agent.update_q_table()
+            learning_agent.select_action()
+            learning_agent.match_parameters(paramClass)
+            learning_agent.time_count = 0
+         
     # initialize 
     d = paramClass.d_weighted[k_node, k_node]
     d_a = sigma_norm(d)                         # lattice separation (goal)  
@@ -254,6 +260,7 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
                 # adjust the parameters
                 if dist < d + 0.5 and hetero_lattice == 1:
                 
+                    # seek consensus 
                     paramClass.update(k_node, k_neigh)
 
     # return the command

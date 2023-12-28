@@ -186,6 +186,28 @@ class Targets:
         self.targets[1,:] = 100*np.sin(self.tSpeed*t)*np.cos(self.tSpeed*t)  # targets[1,:] + tSpeed*0.005
         self.targets[2,:] = 100*np.sin(self.tSpeed*t)*np.sin(self.tSpeed*t)+15  # targets[2,:] + tSpeed*0.0005
         
+        
+    def evolve_obs_centroid(self, vectors):
+
+        if vectors.shape[0] != 3:
+            raise ValueError("Input array must have shape (3, n)")
+
+        num_vectors = vectors.shape[1]
+
+        if num_vectors == 0:
+            raise ValueError("Empty array of vectors")
+
+        # Use NumPy to sum along the columns (axis=1)
+        sum_components = np.sum(vectors, axis=1)
+
+        # Calculate the average for each component
+        centroid = sum_components / num_vectors
+        
+        self.targets[0,:] = centroid[0]
+        self.targets[1,:] = centroid[1]
+        self.targets[2,:] = centroid[2]
+
+      
 class Obstacles:
     
     def __init__(self,tactic_type,nObs,targets):
@@ -196,6 +218,7 @@ class Obstacles:
         # -------------------
         self.nObs    = nObs     # number of obstacles 
         self.vehObs  = 0     # include other vehicles as obstacles [0 = no, 1 = yes] 
+         
 
         # if using reynolds, need make target an obstacle 
         if tactic_type == 'reynolds':
@@ -247,8 +270,8 @@ class Obstacles:
         
         #self.obstacles_plus = self.obstacles.copy()
         self.obstacles_plus = copy.deepcopy(self.obstacles)
-              
-    
+        
+ 
     def buildWall(self, wType, pos): 
         
         if wType == 'horizontal':
