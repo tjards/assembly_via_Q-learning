@@ -66,7 +66,7 @@ if learning == 1:
 # -----------------
 
 # key ranges 
-d       = 7             # lattice scale (desired distance between agents) note: gets overridden by RL.
+d       = 10             # lattice scale (desired distance between agents) note: gets overridden by RL.
 r       = 1.3*d         # range at which neighbours can be sensed 
 d_prime = 0.6*d         # desired separation 
 r_prime = 1.3*d_prime   # range at which obstacles can be sensed
@@ -74,7 +74,9 @@ rg      = d + 0.5       # range for graph analysis (nominally, d + small number)
 
 # options
 hetero_lattice = 1      # support heterogeneous lattice size? 0 = no, 1 = yes
-params_n       = 10     # this must match the number of agents (pull automatically later)
+params_n       = 5     # this must match the number of agents (pull automatically later)
+
+
 
 # gains
 c1_a = 1               # cohesion
@@ -106,14 +108,14 @@ class parameterizer:
         
         # select parameter ranges
         if hetero_lattice == 1:
-            self.params_range = [1,d]
+            self.params_range = [5,d]
         else:
             self.params_range = [d,d]
         
         # parameters
         self.params_n   = params_n  # number of parameters
         self.params     = [random.uniform(self.params_range[0], self.params_range[1]) for _ in range(self.params_n)] # options for these parameters
-        self.alpha      = 0.2                 # (0,1)
+        self.alpha      = 0.5                 # (0,1)
         self.beta       = 1-self.alpha        # (0,1) # assume all equal now, but this can vary per agent (maybe, just touching)
         
         # store the parameters
@@ -128,6 +130,7 @@ class parameterizer:
         #print('agent ', k_node,' d from agent ', k_neigh, ': ', d )
         self.d_weighted[k_node, k_neigh] = self.alpha * self.d_weighted[k_node, k_neigh]
         self.d_weighted[k_node, k_neigh] += (self.beta * self.d_weighted[k_neigh, k_node])
+        #print("lattice param: ", self.d_weighted[k_node, k_neigh])
 
     
 #%% instatiate class for parameters
@@ -204,7 +207,7 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
         learning_agent.time_count_i[k_node] += 1
         
         # if we are at the end of the horizon (and, optionally, not jumping all over the place)
-        if learning_agent.time_count_i[k_node] > learning_agent.time_horizon and np.max(abs(states_p))<learning_agent.time_horizon_v:
+        if learning_agent.time_count_i[k_node] > learning_agent.time_horizon and np.max(abs(states_p[:,k_node]))<learning_agent.time_horizon_v:
             
             # learn
             #print("trial length for Agent ",k_node,": ", learning_agent.time_count_i[k_node])
@@ -213,6 +216,11 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
             learning_agent.select_action_i(k_node)
             learning_agent.match_parameters_i(paramClass, k_node)
             learning_agent.time_count_i[k_node] = 0
+            
+            # adjust exploit rate
+            learning_agent.update_exploit_rate()
+            print('REWARD, Agent', k_node, ": ", learning_agent.reward)
+            #print(learning_agent.explore_rate)
              
     # global case
     elif learning == 1 and learning_decentralized != 1:
@@ -230,6 +238,10 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
             learning_agent.select_action()
             learning_agent.match_parameters(paramClass)
             learning_agent.time_count = 0
+            
+            # adjust exploit rate
+            learning_agent.update_exploit_rate()
+            print('REWARD:', learning_agent.reward)
          
     # initialize 
     d = paramClass.d_weighted[k_node, k_node]
@@ -258,10 +270,10 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
                 u_int[:,k_node] += c1_a*phi_a(states_q[:,k_node],states_q[:,k_neigh],r_a, d_a)*n_ij(states_q[:,k_node],states_q[:,k_neigh]) + c2_a*a_ij(states_q[:,k_node],states_q[:,k_neigh],r_a)*(states_p[:,k_neigh]-states_p[:,k_node]) 
             
                 # adjust the parameters
-                if dist < d + 0.5 and hetero_lattice == 1:
+                #if dist < d + 0.5 and hetero_lattice == 1:
                 
-                    # seek consensus 
-                    paramClass.update(k_node, k_neigh)
+                # seek consensus 
+                paramClass.update(k_node, k_neigh)
 
     # return the command
     return u_int[:,k_node] 

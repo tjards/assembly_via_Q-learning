@@ -55,20 +55,23 @@ with open(file_path, 'w') as file:
 
 #%% Setup Simulation
 # ------------------
-np.random.seed(0)
-Ti = 0       # initial time
-Tf = 60      # final time (later, add a condition to break out when desirable conditions are met)
-Ts = 0.02    # sample time
-f  = 0       # parameter for future use
+np.random.seed(1)
+Ti      = 0       # initial time
+Tf      = 300      # final time (later, add a condition to break out when desirable conditions are met)
+Ts      = 0.02    # sample time
+f       = 0       # parameter for future use
+nAgents = 5
+nObs    = 1
+
 #exclusion = []     # [LEGACY] initialization of what agents to exclude, default empty
 
 #%% Instantiate the relevants objects
 # ------------------------------------
-Agents = swarm.Agents('pinning', 10)
+Agents = swarm.Agents('pinning', nAgents)
 Controller = tactic.Controller(Agents)
 Targets = swarm.Targets(0, Agents.nVeh)
 Trajectory = swarm.Trajectory(Targets)
-Obstacles = swarm.Obstacles(Agents.tactic_type, 5, Targets.targets)
+Obstacles = swarm.Obstacles(Agents.tactic_type, nObs, Targets.targets)
 History = swarm.History(Agents, Targets, Obstacles, Controller, Ts, Tf, Ti, f)
 
 #%% Run Simulation
@@ -80,8 +83,8 @@ while round(t,3) < Tf:
     
     # Evolve the target
     # -----------------    
-    #Targets.evolve(t)
-    Targets.evolve_obs_centroid(Obstacles.obstacles[0:3,:])
+    Targets.evolve(t)
+    #Targets.evolve_obs_centroid(Obstacles.obstacles[0:3,:])
     
     # Update the obstacles (if required)
     # ----------------------------------

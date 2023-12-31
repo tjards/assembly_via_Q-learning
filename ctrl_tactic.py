@@ -84,8 +84,8 @@ class Controller:
             
             self.counter += 1
             
-            # only update the pins at Ts/10
-            if self.counter == 10:
+            # only update the pins at Ts/10 and if xomponents are >1
+            if self.counter == 10 and len(self.components) > 1 :
                 self.counter = 0
                 self.pin_matrix, self.components = pinning_tools.select_pins_components(Agents.state[0:3,:])
                 #print(components)

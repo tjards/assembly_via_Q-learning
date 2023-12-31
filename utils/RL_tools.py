@@ -27,9 +27,9 @@ from scipy.spatial import distance
 
 #%% hyper parameters
 # ----------------
-options_range   = [2, 8]    # range of action options [min, max]
-nOptions        = 3         # number of action options (evenly spaced between [min, max])
-time_horizon    = 250       # how long to apply action and await reward (eg., 1 sec/0.02 sample per sec = 50)
+options_range   = [5, 10]    # range of action options [min, max]
+nOptions        = 2         # number of action options (evenly spaced between [min, max])
+time_horizon    = 200       # how long to apply action and await reward (eg., 1 sec/0.02 sample per sec = 50)
 time_horizon_v  = 0.2       # optional, max speed constraint to permit new action (higher makes more stable)
 
 #%% data saving
@@ -59,10 +59,11 @@ class q_learning_agent:
         self.nOptions       = nOptions # defined above
         self.action_options = {state: np.linspace(options_range[0], options_range[1], self.nOptions) for state in range(self.nAgents)}
         self.explore_rate   = 1     # [0,1], 1 = always learn, 0 = always exploit best option
-        self.learn_rate     = 0.5   # [0,1]
-        self.discount       = 0.8   # balance immediate/future rewards, (gamma): 0.8 to 0.99
+        self.learn_rate     = 0.4   # [0,1]
+        self.discount       = 0 #0.8   # balance immediate/future rewards, (gamma): 0.8 to 0.99
         self.time_horizon   = time_horizon
         self.time_horizon_v = time_horizon_v
+        self.explore_exp_decay = 0.01 # [0.01 (slower decay), 0.1 (faster decay)]: a, where et = e0 * e^{-at}
         
         # initialize timers (global)
         self.time_count     = 0     # initialize 
@@ -96,6 +97,20 @@ class q_learning_agent:
         
         # select an initial action
         self.select_action()
+        
+     # %% adjust explore/exploit rate
+     # ------------------------------
+     
+    def update_exploit_rate(self):
+         
+        #self.explore_rate = self.explore_rate * np.exp(- self.explore_rate*t)
+        #self.explore_rate = self.explore_rate * np.exp(- (self.explore_exp_decay))
+        self.explore_rate = self.explore_rate * np.exp(- self.explore_exp_decay)
+        if self.explore_rate < 0.01:
+            self.explore_rate == 0 
+        print('explore rate: ',  self.explore_rate) 
+         
+        
 
     # %% select an action 
     # ---------------------
@@ -179,10 +194,11 @@ class q_learning_agent:
         # initialize reward signal and temp helpers
         self.reward = 0
         summerizer = 0.0001
-        normalizer = 0.0001
         
         # for each agent 
         for i in range(states_q.shape[1]):
+            
+            normalizer = 0.0001
             
             # cycle through landmarks
             for j in range(landmarks.shape[1]):
@@ -192,7 +208,7 @@ class q_learning_agent:
                 normalizer += 1
         
         # compute reward signal
-        self.reward = 1/np.divide(summerizer,normalizer) 
+        self.reward = states_q.shape[1]/np.divide(summerizer,normalizer) 
         
        # print("Reward signal: ", self.reward)
  
@@ -267,7 +283,7 @@ class q_learning_agent:
         self.data[self.Q_update_count] = copy.deepcopy(self.Q)
         
         if self.Q_update_count > 10:
-            self.Q_update_count = 0
+            #self.Q_update_count = 0
             
             data = convert_to_json_serializable(self.data)
 
@@ -301,11 +317,12 @@ class q_learning_agent:
                     
         #print('Reward at ',  self.time_count, ' : ', self.reward)
         self.Q_update_count += 1
+        print("Q-table Updates: ", self.Q_update_count)
         
         self.data[self.Q_update_count] = copy.deepcopy(self.Q)
         
         if self.Q_update_count > 10*self.nAgents:
-            self.Q_update_count = 0
+            #self.Q_update_count = 0
             
             data = convert_to_json_serializable(self.data)
 
