@@ -55,7 +55,7 @@ from utils import graph_tools as grph
 # ----------------------------
 
 learning = 1                # learning? 1 = yes, 0 = no
-learning_decentralized = 1  # local Q-table updates (1 = yes, 0 = global updates?
+#learning_decentralized = 1  # local Q-table updates (1 = yes, 0 = global updates?
 
 if learning == 1:
     from utils import RL_tools as RL
@@ -136,13 +136,19 @@ class parameterizer:
 #%% instatiate class for parameters
 paramClass = parameterizer(params_n, hetero_lattice)
 
+# if learning, align parameters with controller
 if learning == 1:
     
     learning_agent = RL.q_learning_agent(paramClass.params_n)
     
+    # ensure parameters match controller
+    if paramClass.d_weighted.shape[1] != len(learning_agent.action):
+        raise ValueError("Error! Mis-match in dimensions of controller and RL parameters")
+    
     # overide the module-level parameter selection
-    learning_agent.select_action()
-    learning_agent.match_parameters(paramClass)
+    for i in range(paramClass.d_weighted.shape[1]):
+        
+        learning_agent.match_parameters_i(paramClass, i)
 
 #%% Useful functions
 # ----------------
@@ -201,7 +207,7 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
         raise ValueError("Error! There are ", states_q.shape[1], 'agents, but ', paramClass.d_weighted.shape[1], 'lattice parameters')
         
     # execute the reinforcement learning, local case (if applicable)
-    if learning == 1 and learning_decentralized == 1:
+    if learning == 1: #and learning_decentralized == 1:
         
         # increment the counter(s)
         learning_agent.time_count_i[k_node] += 1
@@ -210,6 +216,10 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
         if learning_agent.time_count_i[k_node] > learning_agent.time_horizon and np.max(abs(states_p[:,k_node]))<learning_agent.time_horizon_v:
             
             # learn
+            
+            # update the state (do in blocks of 10)
+            learning_agent.state = np.around(states_q[0:3,k_node]-targets[0:3,k_node],-1)
+
             #print("trial length for Agent ",k_node,": ", learning_agent.time_count_i[k_node])
             learning_agent.compute_reward(np.reshape(states_q[:,k_node],(3,1)), landmarks)
             learning_agent.update_q_table_i(k_node)
@@ -218,30 +228,30 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
             learning_agent.time_count_i[k_node] = 0
             
             # adjust exploit rate
-            learning_agent.update_exploit_rate()
-            print('REWARD, Agent', k_node, ": ", learning_agent.reward)
+            learning_agent.update_exploit_rate(k_node)
+            #print('REWARD, Agent', k_node, ": ", learning_agent.reward)
             #print(learning_agent.explore_rate)
              
-    # global case
-    elif learning == 1 and learning_decentralized != 1:
+    # # global case
+    # elif learning == 1 and learning_decentralized != 1:
     
-        # increment the RL counter
-        learning_agent.time_count += 1/learning_agent.nAgents # note: we divide by nAgent becvause this is called for each agent
+    #     # increment the RL counter
+    #     learning_agent.time_count += 1/learning_agent.nAgents # note: we divide by nAgent becvause this is called for each agent
         
-        # if we have reached the learning time horizon
-        if learning_agent.time_count > learning_agent.time_horizon and np.max(abs(states_p))<learning_agent.time_horizon_v:
+    #     # if we have reached the learning time horizon
+    #     if learning_agent.time_count > learning_agent.time_horizon and np.max(abs(states_p))<learning_agent.time_horizon_v:
             
-            # learn
-            #print("trial length: ", learning_agent.time_count)
-            learning_agent.compute_reward(states_q, landmarks)
-            learning_agent.update_q_table()
-            learning_agent.select_action()
-            learning_agent.match_parameters(paramClass)
-            learning_agent.time_count = 0
+    #         # learn
+    #         #print("trial length: ", learning_agent.time_count)
+    #         learning_agent.compute_reward(states_q, landmarks)
+    #         learning_agent.update_q_table()
+    #         learning_agent.select_action()
+    #         learning_agent.match_parameters(paramClass)
+    #         learning_agent.time_count = 0
             
-            # adjust exploit rate
-            learning_agent.update_exploit_rate()
-            print('REWARD:', learning_agent.reward)
+    #         # adjust exploit rate
+    #         learning_agent.update_exploit_rate()
+    #         print('REWARD:', learning_agent.reward)
          
     # initialize 
     d = paramClass.d_weighted[k_node, k_node]

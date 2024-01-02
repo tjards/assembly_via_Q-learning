@@ -57,11 +57,11 @@ with open(file_path, 'w') as file:
 # ------------------
 np.random.seed(1)
 Ti      = 0       # initial time
-Tf      = 300      # final time (later, add a condition to break out when desirable conditions are met)
+Tf      = 1000      # final time (later, add a condition to break out when desirable conditions are met)
 Ts      = 0.02    # sample time
 f       = 0       # parameter for future use
 nAgents = 5
-nObs    = 1
+nObs    = 3
 
 #exclusion = []     # [LEGACY] initialization of what agents to exclude, default empty
 
@@ -83,8 +83,8 @@ while round(t,3) < Tf:
     
     # Evolve the target
     # -----------------    
-    Targets.evolve(t)
-    #Targets.evolve_obs_centroid(Obstacles.obstacles[0:3,:])
+    #Targets.evolve(t)
+    Targets.evolve_obs_centroid(Obstacles.obstacles[0:3,:])
     
     # Update the obstacles (if required)
     # ----------------------------------
@@ -165,8 +165,8 @@ start = int(10/0.02)
 
 for j in range(0,History.states_all.shape[2]):
     ax.plot(History.t_all[start::],radii_o_means2[start::].ravel(),'-g')
-ax.set(xlabel='Time [s]', ylabel='Mean distance from Landmarks for Each Agent [m]',
-        title='Distance from Obstacles')
+ax.set(xlabel='Time [s]', ylabel='Mean Distance from Landmarks [m]',
+        title='Learning Progress')
 #plt.axhline(y = 5, color = 'k', linestyle = '--')
 
 plt.show()
