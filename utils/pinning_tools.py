@@ -74,7 +74,7 @@ rg      = d + 0.5       # range for graph analysis (nominally, d + small number)
 
 # options
 hetero_lattice = 1      # support heterogeneous lattice size? 0 = no, 1 = yes
-params_n       = 5     # this must match the number of agents (pull automatically later)
+params_n       = 10     # this must match the number of agents (pull automatically later)
 
 
 

@@ -55,12 +55,12 @@ with open(file_path, 'w') as file:
 
 #%% Setup Simulation
 # ------------------
-np.random.seed(1)
+np.random.seed(5)
 Ti      = 0       # initial time
-Tf      = 1000      # final time (later, add a condition to break out when desirable conditions are met)
+Tf      = 2000      # final time (later, add a condition to break out when desirable conditions are met)
 Ts      = 0.02    # sample time
 f       = 0       # parameter for future use
-nAgents = 5
+nAgents = 10
 nObs    = 3
 
 #exclusion = []     # [LEGACY] initialization of what agents to exclude, default empty
@@ -113,7 +113,7 @@ while round(t,3) < Tf:
       
 #%% Produce animation of simulation
 # ---------------------------------       
-ani = animation.animateMe(Ts, History, Obstacles, Agents.tactic_type)
+#ani = animation.animateMe(Ts, History, Obstacles, Agents.tactic_type)
 
 #%% Produce plots
 # --------------
