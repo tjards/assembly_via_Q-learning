@@ -60,10 +60,10 @@ with open(file_path, 'w') as file:
 # ------------------
 np.random.seed(5)
 Ti      = 0       # initial time
-Tf      = 60      # final time (later, add a condition to break out when desirable conditions are met)
+Tf      = 4000      # final time (later, add a condition to break out when desirable conditions are met)
 Ts      = 0.02    # sample time
 f       = 0       # parameter for future use
-nAgents = 10
+nAgents = 21
 nObs    = 3       # obstacles serve as landmarks for learning
 #exclusion = []     # [LEGACY] initialization of what agents to exclude, default empty
 

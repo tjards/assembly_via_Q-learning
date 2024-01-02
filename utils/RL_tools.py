@@ -151,7 +151,7 @@ class q_learning_agent:
         self.explore_rate[i] = self.explore_rate[i] * np.exp(- self.explore_exp_decay)
         if self.explore_rate[i] < 0.01:
             self.explore_rate[i] = 0 
-        print('explore rate for Agent ',i,': ',  self.explore_rate[i]) 
+        #print('explore rate for Agent ',i,': ',  self.explore_rate[i]) 
          
         
 
