@@ -14,6 +14,10 @@ This project implements an autonomous, decentralized swarming strategies includi
 The strategies requires no human invervention once the target is selected and all agents rely on local knowledge only. 
 Each vehicle makes its own decisions about where to go based on its relative position to other vehicles.
 
+Note:
+    
+    This implementation includes Q-Learning applied to the Pinning Control module
+
 Created on Tue Dec 22 11:48:18 2020
 
 @author: tjards
@@ -52,17 +56,15 @@ file_path = os.path.join(data_directory, "data.json")
 with open(file_path, 'w') as file:
     json.dump(data, file)
 
-
 #%% Setup Simulation
 # ------------------
 np.random.seed(5)
 Ti      = 0       # initial time
-Tf      = 2000      # final time (later, add a condition to break out when desirable conditions are met)
+Tf      = 60      # final time (later, add a condition to break out when desirable conditions are met)
 Ts      = 0.02    # sample time
 f       = 0       # parameter for future use
 nAgents = 10
-nObs    = 3
-
+nObs    = 3       # obstacles serve as landmarks for learning
 #exclusion = []     # [LEGACY] initialization of what agents to exclude, default empty
 
 #%% Instantiate the relevants objects
@@ -113,7 +115,7 @@ while round(t,3) < Tf:
       
 #%% Produce animation of simulation
 # ---------------------------------       
-#ani = animation.animateMe(Ts, History, Obstacles, Agents.tactic_type)
+ani = animation.animateMe(Ts, History, Obstacles, Agents.tactic_type)
 
 #%% Produce plots
 # --------------
@@ -201,58 +203,3 @@ with open(file_path, 'w') as file:
 with open(file_path, 'r') as file:
     data_json = json.load(file)
 
-
-#%% LEGACY code (keep for reference)
-
-    # EXPIRMENT # 1 - exclude random agents from the swarm every 10 seconds
-    # select which agents to exclude (manually)
-    # every 10 seconds
-    #if t%10 < Ts:
-        # randomly exclude
-        #exclusion = [random.randint(0, nVeh-1)]
-        #print(exclusion)
-        
-    # # EXPIRMENT # 2 - manually exclude agents from the swarm
-    # # for simulation
-    # if t < 20:
-    #     exclusion = [2]
-    # if t > 20 and t <= 45:
-    #     exclusion = [2,7]
-    # if t > 45 and t <= 65:
-    #     exclusion = [1]
-    # if t > 45 and t <= 75:
-    #     exclusion = [1,6]
-    # if t > 75 and t <= 90:
-    #     exclusion = [3]
-    # if t > 75 and t <= 100:
-    #     exclusion = [3,7]
-    # if t > 100 and t <= 115:
-    #     exclusion = [9]
-    # if t > 115 and t <= 120:
-    #     exclusion = [5]
-    # if t > 120 and t <= 150:
-    #     exclusion = [4]
-    # if t > 150 and t <= 185:
-    #     exclusion = [4,8]
-    # if t > 185 and t <= 200:
-    #     exclusion = [6]
-        
-    # # Experiment #3 - remove 2 then remove 2
-    # if t < 20:
-    #     exclusion = []
-    # if t > 20 and t <= 50:
-    #     exclusion = [1]
-    # if t > 50 and t <= 80:
-    #     exclusion = [1,2]
-    # if t > 80 and t <= 110:
-    #     exclusion = [2]
-    # if t > 110 and t <= 140:
-    #     exclusion = []
-    
-# show_B_max  = 1 # highlight the max influencer? (0 = np, 1 = yes)
-# if tactic_type == 'pinning' and show_B_max == 1:
-#     # find the max influencer in the graph
-#     G = graph_tools.build_graph(states_q, 5.1)
-#     B = graph_tools.betweenness(G)
-#     B_max = max(B, key=B.get)
-#     pins_all[:,B_max,B_max] = 2

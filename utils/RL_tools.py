@@ -34,9 +34,7 @@ options_range   = [4, 8]    # range of action options [min, max]
 nOptions        = 2         # number of action options (evenly spaced between [min, max])
 time_horizon    = 100       # how long to apply action and await reward (eg., 1 sec/0.02 sample per sec = 50)
 time_horizon_v  = 0.2       # optional, max speed constraint to permit new action (higher makes more stable)
-
 states_grid     = 1         # represent states in Q-table as a grid? 1 = yes, 0 = no
-
 
 #%% data saving
 # -------------
@@ -44,16 +42,6 @@ data_directory = 'Data'
 file_path = os.path.join(data_directory, "data_Q.json")
 
 # converts to dict to json'able
-# def convert_to_json_serializable(obj):
-#     if isinstance(obj, np.ndarray):
-#         return obj.tolist()
-#     elif isinstance(obj, dict):
-#         return {key: convert_to_json_serializable(value) for key, value in obj.items()}
-#     elif isinstance(obj, list):
-#         return [convert_to_json_serializable(item) for item in obj]
-#     else:
-#         return obj
-    
 def convert_to_json_serializable(obj):
     if isinstance(obj, np.ndarray):
         return obj.tolist()
@@ -152,20 +140,7 @@ class q_learning_agent:
                             
                             self.Q["Agent " + str(i)]["Neighbour " + str(j)][tuple(self.state)]["Option " + str(option_label)]= 0 
                             
-   
-        # insert a conditional statement here
-        # if, state_grid, then add a new {} at end, to store state_q (as round(state_q, -1) for a grid)
-        # store [agent i][neighbour j][option k]["init"] to initalize
-        # then feed the observed states in and update these
-        # if asked to select an unobserved state from Q-table, just pick the highest of the observed 
-        # make the state with reference to it's pin
-        # each time a new state is discovered: self.Q["Agent " + str(i)]["Neighbour " + str(j)][tuple(self.state)] = {}
-        
-        # select an initial action (this needs to be updated for state Q-table)
-        #self.select_action()
-        #print('debug')
-
-        
+          
      # %% adjust explore/exploit rate
      # ------------------------------
      
@@ -182,49 +157,7 @@ class q_learning_agent:
 
     # %% select an action 
     # ---------------------
-
-    # # global case
-    # # -----------         
-    # def select_action(self):
-        
-    #     # explore 
-    #     if random.uniform(0, 1) < self.explore_rate:
-            
-    #         # for each agent 
-    #         for i in range(self.nAgents):
-                
-    #             #self.state["Agent " + str(i)] = i 
-    #             self.action["Agent " + str(i)] = {}
-                
-    #             # search through each neighbour
-    #             for j in range(self.nAgents):
                     
-    #                 # not itself
-    #                 if i != j:
-                        
-    #                     # select an action (randomly)
-    #                     self.action["Agent " + str(i)]["Neighbour Action " + str(j)] = self.action_options[i][np.random.choice(self.nOptions)]
-        
-    #     # exploit             
-    #     else:
-            
-    #         # for each agent 
-    #         for i in range(self.nAgents):
-                
-    #             self.action["Agent " + str(i)] = {}
-                
-    #             # search through each agent 
-    #             for j in range(self.nAgents): 
-                    
-    #                 # not itself
-    #                 if i != j:
-                        
-    #                     # get the key for the max reward
-    #                     temp = max(self.Q["Agent " + str(i)]["Neighbour " + str(j)], key=self.Q["Agent " + str(i)]["Neighbour " + str(j)].get)
-                        
-    #                     # select the action corresponding to the max reward
-    #                     self.action["Agent " + str(i)]["Neighbour Action " + str(j)] = float(temp.replace("Option ",""))
-                        
     # local case
     # ---------
     def select_action_i(self, i):
@@ -242,7 +175,6 @@ class q_learning_agent:
                     
         else:
             
-
             self.action["Agent " + str(i)] = {}
             
             for j in range(self.nAgents): 
@@ -292,24 +224,6 @@ class q_learning_agent:
     #%% link to parameters used by controller
     # ---------------------------------------
 
-    # # global case
-    # def match_parameters(self,paramClass):
-        
-    #     # set controller parameters
-    #     if paramClass.d_weighted.shape[1] != len(self.action):
-    #         raise ValueError("Error! Mis-match in dimensions of controller and RL parameters")
-        
-    #     # for each control parameter (i.e. lattice lengths)
-    #     for i in range(paramClass.d_weighted.shape[1]):
-            
-    #         # for each neighbour
-    #         for j in range(len(self.action)): # this -1 needs to go
-                
-    #             # not itself
-    #             if i != j:
-                    
-    #                 paramClass.d_weighted[i, j] = self.action["Agent " + str(i)]["Neighbour Action " + str(j)]        
-    
     # local case 
     def match_parameters_i(self,paramClass, i): 
         
@@ -323,49 +237,6 @@ class q_learning_agent:
                
     #%% update q-table
     # ----------------
-
-    # # global case     
-    # def update_q_table(self):
-                
-    #     # for each agent
-    #     for i in range(self.nAgents):
-            
-    #         # and its neighbour
-    #         for j in range(self.nAgents):
-                
-    #             # not itself
-    #             if i != j:
-                
-    #                 # update the q table with selected action
-    #                 selected_option = self.action["Agent " + str(i)]["Neighbour Action " + str(j)]
-                    
-    #                 # we will use this same action for the discounted future rewards, but from the neighbour's perspective
-    #                 future_option = self.action["Agent " + str(i)]["Neighbour Action " + str(j)] 
-                    
-    #                 #self.state = ["Agent " + str(i), "Neighbour " + str(j)]
-    #                 #self.action = ["Option " + str(selected_option)]
-                    
-    #                 # Q(s,a)
-    #                 Q_current = self.Q["Agent " + str(i)]["Neighbour " + str(j)]["Option " + str(selected_option)] 
-                    
-    #                 # Q(s+,a)
-    #                 Q_future = self.Q["Agent " + str(j)]["Neighbour " + str(i)]["Option " + str(future_option)] # this needs to flip i/j eventually 
-                    
-    #                 #self.Q["Agent " + str(i)]["Neighbour " + str(j)]["Option " + str(selected_option)] += np.multiply(self.learn_rate, self.reward + self.discount*Q_future - Q_current)
-    #                 self.Q["Agent " + str(i)]["Neighbour " + str(j)]["Option " + str(selected_option)] = (1 - self.learn_rate)*Q_current + self.learn_rate*(self.reward + self.discount*Q_future)
-                    
-    #     #print('Reward at ',  self.time_count, ' : ', self.reward)
-    #     self.Q_update_count += 1
-        
-    #     self.data[self.Q_update_count] = copy.deepcopy(self.Q)
-        
-    #     if self.Q_update_count > 10:
-    #         #self.Q_update_count = 0
-            
-    #         data = convert_to_json_serializable(self.data)
-
-    #         with open(file_path, 'w') as file:
-    #             json.dump(data, file)
     
     # local case
     def update_q_table_i(self, i):

@@ -21,7 +21,7 @@ from matplotlib import animation
 # -------------------
 numFrames           = 20    # frame rate (bigger = slower)
 tail                = 200   # trailing trajectory length 
-zoom                = 0     # do you want to adjust frames with motion? [0 = no, 1 = yes, 2 = fixed (set below), 3 = fixed_zoom (set below) ]
+zoom                = 1     # do you want to adjust frames with motion? [0 = no, 1 = yes, 2 = fixed (set below), 3 = fixed_zoom (set below) ]
 pan                 = 0     # camera pan? 0 = no, 1 = yes (memory-heavy)
 connection          = 1     # show connections?
 connection_thresh   = 10.5   # nominally 5.1. how close do agents need to be in order to connect?

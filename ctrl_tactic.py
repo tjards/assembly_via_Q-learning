@@ -22,13 +22,6 @@ import copy
 
 #%% hyperparameters
 # -----------------
-#learning = 1        # do we want to learn?
-
-#%% instatiate the learning agent
-#if learning == 1:
-    #from utils import RL_tools as RL
-    #learning_agent = RL.q_learning_agent(10, 10)
-
 
 #%% tactic command equations 
 # --------------------------

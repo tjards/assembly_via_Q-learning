@@ -76,8 +76,6 @@ rg      = d + 0.5       # range for graph analysis (nominally, d + small number)
 hetero_lattice = 1      # support heterogeneous lattice size? 0 = no, 1 = yes
 params_n       = 10     # this must match the number of agents (pull automatically later)
 
-
-
 # gains
 c1_a = 1               # cohesion
 c2_a = 2*np.sqrt(1)
@@ -231,27 +229,6 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
             learning_agent.update_exploit_rate(k_node)
             #print('REWARD, Agent', k_node, ": ", learning_agent.reward)
             #print(learning_agent.explore_rate)
-             
-    # # global case
-    # elif learning == 1 and learning_decentralized != 1:
-    
-    #     # increment the RL counter
-    #     learning_agent.time_count += 1/learning_agent.nAgents # note: we divide by nAgent becvause this is called for each agent
-        
-    #     # if we have reached the learning time horizon
-    #     if learning_agent.time_count > learning_agent.time_horizon and np.max(abs(states_p))<learning_agent.time_horizon_v:
-            
-    #         # learn
-    #         #print("trial length: ", learning_agent.time_count)
-    #         learning_agent.compute_reward(states_q, landmarks)
-    #         learning_agent.update_q_table()
-    #         learning_agent.select_action()
-    #         learning_agent.match_parameters(paramClass)
-    #         learning_agent.time_count = 0
-            
-    #         # adjust exploit rate
-    #         learning_agent.update_exploit_rate()
-    #         print('REWARD:', learning_agent.reward)
          
     # initialize 
     d = paramClass.d_weighted[k_node, k_node]
