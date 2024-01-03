@@ -54,7 +54,7 @@ from utils import graph_tools as grph
 #%% leaarning stuff (optional)
 # ----------------------------
 
-learning = 0                # learning? 1 = yes, 0 = no
+learning = 1                # learning? 1 = yes, 0 = no
 #learning_decentralized = 1  # local Q-table updates (1 = yes, 0 = global updates?
 
 if learning == 1:
@@ -74,7 +74,7 @@ rg      = d + 0.5       # range for graph analysis (nominally, d + small number)
 
 # options
 hetero_lattice = 1      # support heterogeneous lattice size? 0 = no, 1 = yes
-params_n       = 11     # this must match the number of agents (pull automatically later)
+params_n       = 5     # this must match the number of agents (pull automatically later)
 
 # gains
 c1_a = 1               # cohesion

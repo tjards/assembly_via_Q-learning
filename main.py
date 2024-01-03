@@ -63,8 +63,8 @@ Ti      = 0       # initial time
 Tf      = 90      # final time (later, add a condition to break out when desirable conditions are met)
 Ts      = 0.02    # sample time
 f       = 0       # parameter for future use
-nAgents = 11
-nObs    = 0       # obstacles serve as landmarks for learning
+nAgents = 5
+nObs    = 3       # obstacles serve as landmarks for learning
 #exclusion = []     # [LEGACY] initialization of what agents to exclude, default empty
 
 #%% Instantiate the relevants objects

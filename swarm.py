@@ -498,7 +498,7 @@ class History:
         self.metrics_order_all[i,:]  = self.metrics_order
         self.swarm_prox              = self.sigma_norm(Agents.centroid.ravel()-Targets.targets[0:3,0])
         
-        self.lattices[i,:,:]         = 
+        self.lattices[i,:,:]         = Controller.lattice
         
 class Trajectory:
     
