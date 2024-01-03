@@ -67,7 +67,7 @@ class q_learning_agent:
         #self.explore_rate   = 1     # [0,1], 1 = always learn, 0 = always exploit best option
         self.explore_rate = 1*np.ones((nAgents)) # now each agent has its own
         self.learn_rate     = 0.4   # [0,1]
-        self.discount       = 0 #0.8   # balance immediate/future rewards, (gamma): 0.8 to 0.99
+        self.discount       = 0.2 #0.8   # balance immediate/future rewards, (gamma): 0.8 to 0.99
         self.time_horizon   = time_horizon
         self.time_horizon_v = time_horizon_v
         self.explore_exp_decay = 0.04 # [0.01 (slower decay), 0.1 (faster decay)]: a, where et = e0 * e^{-at}
@@ -89,8 +89,10 @@ class q_learning_agent:
         else:
             state_init = np.array([0,0,0])
             self.state = state_init
-            self.state_next = state_init
-      
+            self.state_next = np.zeros((3,nAgents))
+            self.state_next[0:3, :] = state_init.reshape(3, 1)
+            
+
         # initialize action
         self.action         = {}
         for i in range(self.nAgents):
@@ -102,6 +104,8 @@ class q_learning_agent:
                     # select an action (randomly)
                     self.action["Agent " + str(i)]["Neighbour Action " + str(j)] = self.action_options[i][np.random.choice(self.nOptions)]
     
+        
+        self.action_next    = {}
         self.nState         = self.nAgents
         self.nAction        = self.nAgents * self.nOptions
         self.reward         = 0
@@ -151,7 +155,7 @@ class q_learning_agent:
         self.explore_rate[i] = self.explore_rate[i] * np.exp(- self.explore_exp_decay)
         if self.explore_rate[i] < 0.01:
             self.explore_rate[i] = 0 
-        #print('explore rate for Agent ',i,': ',  self.explore_rate[i]) 
+        print('explore rate for Agent ',i,': ',  self.explore_rate[i]) 
          
         
 
@@ -160,6 +164,29 @@ class q_learning_agent:
                     
     # local case
     # ---------
+    
+    # def select_action_next_i(self, i):
+        
+    #     self.action_next["Agent " + str(i)] = {}
+        
+    #     for j in range(self.nAgents): 
+
+    #         if i != j:
+                
+    #             if states_grid != 1:
+                
+    #                 temp = max(self.Q["Agent " + str(i)]["Neighbour " + str(j)], key=self.Q["Agent " + str(i)]["Neighbour " + str(j)].get)
+                    
+    #                 self.action_next["Agent " + str(i)]["Neighbour Action " + str(j)] = float(temp.replace("Option ",""))
+
+    #             else: # later: this should be next state, not current state
+                    
+    #                 temp = max(self.Q["Agent " + str(i)]["Neighbour " + str(j)][tuple(self.state)], key=self.Q["Agent " + str(i)]["Neighbour " + str(j)][tuple(self.state)].get)
+                    
+    #                 self.action_next["Agent " + str(i)]["Neighbour Action " + str(j)] = float(temp.replace("Option ",""))
+
+    
+    
     def select_action_i(self, i):
         
         if random.uniform(0, 1) < self.explore_rate[i]:
@@ -241,6 +268,8 @@ class q_learning_agent:
     # local case
     def update_q_table_i(self, i):
         
+        #self.select_action_next_i(i)
+        
         for j in range(self.nAgents):
             
             if i != j:
@@ -249,7 +278,8 @@ class q_learning_agent:
                 selected_option = self.action["Agent " + str(i)]["Neighbour Action " + str(j)]
                 
                 # we will use this same action for the discounted future rewards, but from the neighbour's perspective
-                future_option = self.action["Agent " + str(i)]["Neighbour Action " + str(j)] 
+                future_option = self.action["Agent " + str(j)]["Neighbour Action " + str(i)] 
+                   
                 
                 #self.state = ["Agent " + str(i), "Neighbour " + str(j)]
                 #self.action = ["Option " + str(selected_option)]
@@ -280,14 +310,24 @@ class q_learning_agent:
                             self.Q["Agent " + str(i)]["Neighbour " + str(j)][tuple(self.state)]["Option " + str(self.action_options[i][k])] = 0
  
                         # since we have a new state, let's explore more
-                        print("Agent ",i," new state discovered")
+                        #print("Agent ",i," new state discovered")
                         self.explore_rate[i]   = min(1, self.explore_rate[i] + 0.2)                    
  
                     # Q(s,a)
                     Q_current = self.Q["Agent " + str(i)]["Neighbour " + str(j)][tuple(self.state)]["Option " + str(selected_option)] 
                 
-                    # Q(s+,a)
-                    Q_future = self.Q["Agent " + str(j)]["Neighbour " + str(i)][tuple(self.state_next)]["Option " + str(future_option)] # this needs to flip i/j eventually 
+                    # if the neighbour has this state_next
+                    if tuple(self.state_next[:,j]) in self.Q["Agent " + str(j)]["Neighbour " + str(i)]:
+                
+                        # Q(s+,a)
+                        #print('next state found')
+                        Q_future = self.Q["Agent " + str(j)]["Neighbour " + str(i)][tuple(self.state_next[:,j])]["Option " + str(future_option)] # this needs to flip i/j eventually 
+
+                        
+                    else:
+                        
+                        Q_future = 0
+                            
                 
                     self.Q["Agent " + str(i)]["Neighbour " + str(j)][tuple(self.state)]["Option " + str(selected_option)] = (1 - self.learn_rate)*Q_current + self.learn_rate*(self.reward + self.discount*Q_future)
                                                    

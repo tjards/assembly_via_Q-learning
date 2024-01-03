@@ -223,6 +223,7 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
             
             # update the state (do in blocks of 10)
             learning_agent.state = np.around(states_q[0:3,k_node]-targets[0:3,k_node],-1)
+            learning_agent.state_next = np.around(states_q[0:3,:]-targets[0:3,:],-1)
 
             #print("trial length for Agent ",k_node,": ", learning_agent.time_count_i[k_node])
             learning_agent.compute_reward(np.reshape(states_q[:,k_node],(3,1)), landmarks)
