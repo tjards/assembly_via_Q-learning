@@ -58,13 +58,13 @@ with open(file_path, 'w') as file:
 
 #%% Setup Simulation
 # ------------------
-np.random.seed(5)
+np.random.seed(7)
 Ti      = 0       # initial time
-Tf      = 4000      # final time (later, add a condition to break out when desirable conditions are met)
+Tf      = 90      # final time (later, add a condition to break out when desirable conditions are met)
 Ts      = 0.02    # sample time
 f       = 0       # parameter for future use
-nAgents = 21
-nObs    = 3       # obstacles serve as landmarks for learning
+nAgents = 11
+nObs    = 0       # obstacles serve as landmarks for learning
 #exclusion = []     # [LEGACY] initialization of what agents to exclude, default empty
 
 #%% Instantiate the relevants objects
@@ -85,8 +85,8 @@ while round(t,3) < Tf:
     
     # Evolve the target
     # -----------------    
-    #Targets.evolve(t)
-    Targets.evolve_obs_centroid(Obstacles.obstacles[0:3,:])
+    Targets.evolve(t)
+    #Targets.evolve_obs_centroid(Obstacles.obstacles[0:3,:])
     
     # Update the obstacles (if required)
     # ----------------------------------
@@ -149,29 +149,29 @@ ax.set(xlabel='Time [s]', ylabel='Distance from Target for Each Agent [m]',
 plt.show()
 
 #%% radii from obstacles
-radii_o = np.zeros([History.states_all.shape[2],History.states_all.shape[0],History.obstacles_all.shape[2]])
-radii_o_means = np.zeros([History.states_all.shape[2],History.states_all.shape[0]])
-radii_o_means2 =  np.zeros([History.states_all.shape[0]])
+# radii_o = np.zeros([History.states_all.shape[2],History.states_all.shape[0],History.obstacles_all.shape[2]])
+# radii_o_means = np.zeros([History.states_all.shape[2],History.states_all.shape[0]])
+# radii_o_means2 =  np.zeros([History.states_all.shape[0]])
 
-for i in range(0,History.states_all.shape[0]):              # the time samples
-    for j in range(0,History.states_all.shape[2]):          # the agents
-        for k in range(0,History.obstacles_all.shape[2]):   # the obstacles
-            radii_o[j,i,k] = np.linalg.norm(History.states_all[i,0:3,j] - History.obstacles_all[i,0:3,k])
+# for i in range(0,History.states_all.shape[0]):              # the time samples
+#     for j in range(0,History.states_all.shape[2]):          # the agents
+#         for k in range(0,History.obstacles_all.shape[2]):   # the obstacles
+#             radii_o[j,i,k] = np.linalg.norm(History.states_all[i,0:3,j] - History.obstacles_all[i,0:3,k])
 
-        radii_o_means[j,i] = np.mean(radii_o[j,i,:])
-    radii_o_means2[i] = np.mean(radii_o_means[:,i])
+#         radii_o_means[j,i] = np.mean(radii_o[j,i,:])
+#     radii_o_means2[i] = np.mean(radii_o_means[:,i])
 
         
-fig, ax = plt.subplots()
-start = int(10/0.02)
+# fig, ax = plt.subplots()
+# start = int(10/0.02)
 
-for j in range(0,History.states_all.shape[2]):
-    ax.plot(History.t_all[start::],radii_o_means2[start::].ravel(),'-g')
-ax.set(xlabel='Time [s]', ylabel='Mean Distance from Landmarks [m]',
-        title='Learning Progress')
-#plt.axhline(y = 5, color = 'k', linestyle = '--')
+# for j in range(0,History.states_all.shape[2]):
+#     ax.plot(History.t_all[start::],radii_o_means2[start::].ravel(),'-g')
+# ax.set(xlabel='Time [s]', ylabel='Mean Distance from Landmarks [m]',
+#         title='Learning Progress')
+# #plt.axhline(y = 5, color = 'k', linestyle = '--')
 
-plt.show()
+# plt.show()
 
 
 #%% Save data

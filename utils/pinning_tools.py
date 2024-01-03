@@ -54,7 +54,7 @@ from utils import graph_tools as grph
 #%% leaarning stuff (optional)
 # ----------------------------
 
-learning = 1                # learning? 1 = yes, 0 = no
+learning = 0                # learning? 1 = yes, 0 = no
 #learning_decentralized = 1  # local Q-table updates (1 = yes, 0 = global updates?
 
 if learning == 1:
@@ -66,7 +66,7 @@ if learning == 1:
 # -----------------
 
 # key ranges 
-d       = 10             # lattice scale (desired distance between agents) note: gets overridden by RL.
+d       = 15             # lattice scale (desired distance between agents) note: gets overridden by RL.
 r       = 1.3*d         # range at which neighbours can be sensed 
 d_prime = 0.6*d         # desired separation 
 r_prime = 1.3*d_prime   # range at which obstacles can be sensed
@@ -74,7 +74,7 @@ rg      = d + 0.5       # range for graph analysis (nominally, d + small number)
 
 # options
 hetero_lattice = 1      # support heterogeneous lattice size? 0 = no, 1 = yes
-params_n       = 21     # this must match the number of agents (pull automatically later)
+params_n       = 11     # this must match the number of agents (pull automatically later)
 
 # gains
 c1_a = 1               # cohesion
@@ -112,8 +112,9 @@ class parameterizer:
         
         # parameters
         self.params_n   = params_n  # number of parameters
-        self.params     = [random.uniform(self.params_range[0], self.params_range[1]) for _ in range(self.params_n)] # options for these parameters
-        self.alpha      = 0.5                 # (0,1)
+        #self.params     = [random.uniform(self.params_range[0], self.params_range[1]) for _ in range(self.params_n)] # options for these parameters
+        self.params     = [round(random.uniform(self.params_range[0], self.params_range[1]),1) for _ in range(self.params_n)] # options for these parameters
+        self.alpha      = 0.5 #0.5                 # (0,1)
         self.beta       = 1-self.alpha        # (0,1) # assume all equal now, but this can vary per agent (maybe, just touching)
         
         # store the parameters
@@ -122,13 +123,13 @@ class parameterizer:
         while (i < len(self.params)):
             self.d_weighted[i,:] = self.params[i]
             i+=1
-        
+    
     def update(self, k_node, k_neigh):
         
         #print('agent ', k_node,' d from agent ', k_neigh, ': ', d )
         self.d_weighted[k_node, k_neigh] = self.alpha * self.d_weighted[k_node, k_neigh]
         self.d_weighted[k_node, k_neigh] += (self.beta * self.d_weighted[k_neigh, k_node])
-        #print("lattice param: ", self.d_weighted[k_node, k_neigh])
+        #print("Agent ", k_node, "/ ", k_neigh, " param: ", self.d_weighted[k_node, k_neigh])
 
     
 #%% instatiate class for parameters
@@ -196,6 +197,11 @@ def phi_b(q_i, q_ik, d_b):
 
 #%% Control systems functions
 # -------------------------
+
+def get_lattices():
+        
+    return paramClass.d_weighted
+
 
 # form the lattice
 def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):

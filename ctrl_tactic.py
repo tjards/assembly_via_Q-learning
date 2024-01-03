@@ -41,6 +41,9 @@ class Controller:
         # ----------------
         self.counter = 0 
         self.params = np.zeros((4,Agents.nVeh))  # store dynamic parameters
+    
+        self.lattice = np.zeros((Agents.nVeh,Agents.nVeh)) # stores lattice parameters
+        
         
         # select a pin (for pinning control)
         self.pin_matrix = np.zeros((Agents.nVeh,Agents.nVeh))
@@ -77,8 +80,8 @@ class Controller:
             
             self.counter += 1
             
-            # only update the pins at Ts/10 and if xomponents are >1
-            if self.counter >= 10 and len(self.components) > 1 :
+            # only update the pins at Ts/10 and if components are >1
+            if self.counter >= 10: #and len(self.components) > 1 :
                 self.counter = 0
                 self.pin_matrix, self.components = pinning_tools.select_pins_components(Agents.state[0:3,:])
                 #print(components)
@@ -152,6 +155,9 @@ class Controller:
             if Agents.tactic_type == 'pinning':
                 
                 cmd_i[:,k_node] = pinning_tools.compute_cmd(Agents.centroid, Agents.state[0:3,:], Agents.state[3:6,:], Obstacles.obstacles_plus, Obstacles.walls,  Targets.targets[0:3,:], Targets.targets[3:6,:], k_node, self.pin_matrix)
+                
+                
+                
                 
             # Shepherding
             # ------------

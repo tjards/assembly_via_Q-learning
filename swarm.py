@@ -34,7 +34,7 @@ class Agents:
                         
         # Vehicles states
         # ---------------
-        iSpread =   30      # initial spread of vehicles
+        iSpread =   50      # initial spread of vehicles
         self.state = np.zeros((6,self.nVeh))
         self.state[0,:] = iSpread*(np.random.rand(1,self.nVeh)-0.5)                   # position (x)
         self.state[1,:] = iSpread*(np.random.rand(1,self.nVeh)-0.5)                   # position (y)
@@ -453,6 +453,9 @@ class History:
         # note: for pinning control, pins denote pins as a 1
         # also used in lemni to denote membership in swarm as 0
         
+        # stores the desired lattice sizes 
+        self.lattices            = np.zeros((nSteps,Agents.nVeh,Agents.nVeh))
+        
         self.swarm_prox = 0
 
         # store the initial conditions
@@ -495,6 +498,7 @@ class History:
         self.metrics_order_all[i,:]  = self.metrics_order
         self.swarm_prox              = self.sigma_norm(Agents.centroid.ravel()-Targets.targets[0:3,0])
         
+        self.lattices[i,:,:]         = 
         
 class Trajectory:
     
