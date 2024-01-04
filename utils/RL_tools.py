@@ -266,13 +266,15 @@ class q_learning_agent:
     # ----------------
     
     # local case
-    def update_q_table_i(self, i):
+    def update_q_table_i(self, paramClass, i):
         
         #self.select_action_next_i(i)
         
         for j in range(self.nAgents):
             
-            if i != j:
+            #if i != j:
+            # if not itself and also, if neighbour is in range
+            if i != j and paramClass.prox_i[i,j] == 1: 
             
                 # update the q table with selected action
                 selected_option = self.action["Agent " + str(i)]["Neighbour Action " + str(j)]

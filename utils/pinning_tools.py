@@ -123,6 +123,9 @@ class parameterizer:
         while (i < len(self.params)):
             self.d_weighted[i,:] = self.params[i]
             i+=1
+        
+        # store whether agents are in proximity to eachother (1 =  yes, 0 = no)
+        self.prox_i = np.zeros((len(self.params),len(self.params)))
     
     def update(self, k_node, k_neigh):
         
@@ -227,7 +230,7 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
 
             #print("trial length for Agent ",k_node,": ", learning_agent.time_count_i[k_node])
             learning_agent.compute_reward(np.reshape(states_q[:,k_node],(3,1)), landmarks)
-            learning_agent.update_q_table_i(k_node)
+            learning_agent.update_q_table_i(paramClass, k_node)
             learning_agent.select_action_i(k_node)
             learning_agent.match_parameters_i(paramClass, k_node)
             learning_agent.time_count_i[k_node] = 0
@@ -268,6 +271,13 @@ def compute_cmd_a(states_q, states_p, targets, targets_v, k_node, landmarks):
                 
                 # seek consensus 
                 paramClass.update(k_node, k_neigh)
+                paramClass.prox_i[k_node, k_neigh] = 1
+                
+            else:
+                
+                paramClass.prox_i[k_node, k_neigh] = 0
+                
+                
 
     # return the command
     return u_int[:,k_node] 
