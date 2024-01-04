@@ -30,7 +30,7 @@ from scipy.spatial import distance
 
 #%% hyper parameters
 # ----------------
-options_range   = [4, 8]    # range of action options [min, max]
+options_range   = [4, 10]    # range of action options [min, max]
 nOptions        = 2         # number of action options (evenly spaced between [min, max])
 time_horizon    = 100       # how long to apply action and await reward (eg., 1 sec/0.02 sample per sec = 50)
 time_horizon_v  = 0.2       # optional, max speed constraint to permit new action (higher makes more stable)
@@ -155,7 +155,7 @@ class q_learning_agent:
         self.explore_rate[i] = self.explore_rate[i] * np.exp(- self.explore_exp_decay)
         if self.explore_rate[i] < 0.01:
             self.explore_rate[i] = 0 
-        print('explore rate for Agent ',i,': ',  self.explore_rate[i]) 
+        #print('explore rate for Agent ',i,': ',  self.explore_rate[i]) 
          
         
 
@@ -274,7 +274,7 @@ class q_learning_agent:
             
             #if i != j:
             # if not itself and also, if neighbour is in range
-            if i != j and paramClass.prox_i[i,j] == 1: 
+            if i != j: 
             
                 # update the q table with selected action
                 selected_option = self.action["Agent " + str(i)]["Neighbour Action " + str(j)]
@@ -318,8 +318,8 @@ class q_learning_agent:
                     # Q(s,a)
                     Q_current = self.Q["Agent " + str(i)]["Neighbour " + str(j)][tuple(self.state)]["Option " + str(selected_option)] 
                 
-                    # if the neighbour has this state_next
-                    if tuple(self.state_next[:,j]) in self.Q["Agent " + str(j)]["Neighbour " + str(i)]:
+                    # if the neighbour has this state_next and it is in range
+                    if tuple(self.state_next[:,j]) in self.Q["Agent " + str(j)]["Neighbour " + str(i)] and paramClass.prox_i[i,j] == 1:
                 
                         # Q(s+,a)
                         #print('next state found')

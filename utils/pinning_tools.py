@@ -66,7 +66,7 @@ if learning == 1:
 # -----------------
 
 # key ranges 
-d       = 15             # lattice scale (desired distance between agents) note: gets overridden by RL.
+d       = 10             # lattice scale (desired distance between agents) note: gets overridden by RL.
 r       = 1.3*d         # range at which neighbours can be sensed 
 d_prime = 0.6*d         # desired separation 
 r_prime = 1.3*d_prime   # range at which obstacles can be sensed
@@ -114,7 +114,7 @@ class parameterizer:
         self.params_n   = params_n  # number of parameters
         #self.params     = [random.uniform(self.params_range[0], self.params_range[1]) for _ in range(self.params_n)] # options for these parameters
         self.params     = [round(random.uniform(self.params_range[0], self.params_range[1]),1) for _ in range(self.params_n)] # options for these parameters
-        self.alpha      = 0.5 #0.5                 # (0,1)
+        self.alpha      = 0.6 #0.5                 # (0,1)
         self.beta       = 1-self.alpha        # (0,1) # assume all equal now, but this can vary per agent (maybe, just touching)
         
         # store the parameters
