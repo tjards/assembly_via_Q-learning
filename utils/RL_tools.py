@@ -280,7 +280,7 @@ class q_learning_agent:
                 selected_option = self.action["Agent " + str(i)]["Neighbour Action " + str(j)]
                 
                 # we will use this same action for the discounted future rewards, but from the neighbour's perspective
-                future_option = self.action["Agent " + str(j)]["Neighbour Action " + str(i)] 
+                future_option = self.action["Agent " + str(i)]["Neighbour Action " + str(j)] 
                    
                 
                 #self.state = ["Agent " + str(i), "Neighbour " + str(j)]
